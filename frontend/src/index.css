@@ -1,5 +1,52 @@
-html, body, .page {
+*{
+    box-sizing: border-box;
+}
+
+html, body {
     width: 100vw;
     height: 100vh;
     margin: 0;
+    background-color: blueviolet;
+}
+
+.page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: red;
+}
+
+.main-content{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: yellow;
+}
+
+.list_element {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0px;
+}
+
+.listtask {
+    display: flex;
+    align-items: center;
+    align-self: normal;
+    position: relative;
+    padding: 3px 3px 0px 7px;
+    height: auto;
+    list-style: none;
+    background-color: #eeeeee;
+    border-radius: 5px;
+    margin: 10px 0px;
+}
+
+.listtask .status_update{
+    position: absolute;
+    right: 8px;
 }
