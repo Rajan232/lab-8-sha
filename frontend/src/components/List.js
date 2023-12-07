@@ -31,11 +31,6 @@ function Task(props) {
       .catch((error) => {
         console.error("Error:", error);
       });
-
-	  const [isOpen, setIsOpen] = useState(false);
-	  function toggle(){
-		  setIsOpen(!isOpen);
-	  }
   }
 
   function onClick() {
@@ -51,19 +46,50 @@ function Task(props) {
       });
   }
 
+ /* function sendData(id){
+	let element = document.getElementsByName(`extra-${id}`)[0];
+    let desc = element.value
+	fetch(`http://localhost/api/tasks/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ extradescription: desc, completed: true }),
+    })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+
+
+  }*/
+
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
+	< >
     <li className="listtask">
       <button type="button" onClick={onClick}>
         X
-      </button><span className="desc" onClick="toggle">{" "}
-      {props.description}{" "}</span>
+      </button>
+      <span className="desc" onClick={() => setIsOpen(true)}>
+        {" "}
+        {props.description}{" "}
+      </span>
       <input type="checkbox" checked={props.completed} onChange={onChange} />
-	  {isOpen && (
-        <div>
-          <textarea type="text" placeholder="Additional content">{props.extradescription}</textarea>
-        </div>
-      )}
+      
     </li>
+
+{isOpen && (
+	<div>
+	  <textarea
+		type="text"
+		style={{ display: isOpen ? "block" : "none" }}
+		placeholder="Additional content" name={`extra-${props.id}`}
+	  >
+		{props.extradescription}
+	  </textarea>
+	  <button type="button" >Submit</button>
+	</div>
+  )}
+  </>
   );
 }
 

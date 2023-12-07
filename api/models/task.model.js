@@ -8,6 +8,9 @@ module.exports = (sequelize, Sequelize) => {
         description: {
             type: Sequelize.STRING
         },
+        extradescription: {
+            type: Sequelize.TEXT
+        },
         completed: {
             type: Sequelize.BOOLEAN
         }
