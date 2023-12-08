@@ -1,17 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Task(props) {
-  console.log(props);
+  const [isOpen, setIsOpen] = useState(false);
+  const [text, setText] = useState(props.task.extraText || "");
 
-  function onChange() {
-    // Find the task we want to update and update it
-    // Find the task we want to update and update it
+  const toggleAccordion = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleTextChange = (event) => {
+    setText(event.target.value);
+  };
+
+  const handleCheckboxChange = () => {
     const updatedTask = {
-      id: props.id,
-      description: props.description,
-      completed: !props.completed,
+      ...props.task,
+      completed: !props.task.completed,
     };
-    fetch(`http://localhost/api/tasks/${props.id}`, {
+
+    fetch(`http://localhost/api/tasks/${props.task.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedTask),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        props.setTasks((tasks) =>
+          tasks.map((task) => (task.id === props.id ? updatedTask : task))
+        );
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        // Show error message or revert state changes
+      });
+  };
+
+  const saveExtraText = () => {
+    const updatedTask = {
+      ...props.task,
+      extraText: text,
+    };
+
+    fetch(`http://localhost/api/tasks/${props.task.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedTask),
@@ -20,8 +50,8 @@ function Task(props) {
       .then(() => {
         props.setTasks((tasks) =>
           tasks.map((task) => {
-            if (task.id === props.id) {
-              return updatedTask;
+            if (task.id === props.task.id) {
+              return { ...task, extraText: text };
             } else {
               return task;
             }
@@ -31,76 +61,72 @@ function Task(props) {
       .catch((error) => {
         console.error("Error:", error);
       });
-  }
+  };
 
-  function onClick() {
-    // Find the task we want to delete and remove it
-    fetch(`http://localhost/api/tasks/${props.id}`, {
+  const handleDelete = () => {
+    fetch(`http://localhost/api/tasks/${props.task.id}`, {
       method: "DELETE",
     })
       .then(() => {
-        props.setTasks((tasks) => tasks.filter((task) => task.id !== props.id));
+        props.setTasks((tasks) =>
+          tasks.filter((task) => task.id !== props.task.id)
+        );
       })
       .catch((error) => {
         console.error("Error:", error);
       });
-  }
-
- /* function sendData(id){
-	let element = document.getElementsByName(`extra-${id}`)[0];
-    let desc = element.value
-	fetch(`http://localhost/api/tasks/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ extradescription: desc, completed: true }),
-    })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-
-
-  }*/
-
-  const [isOpen, setIsOpen] = useState(false);
+  };
 
   return (
-	< >
-    <li className="listtask">
-      <button type="button" onClick={onClick}>
-        X
-      </button>
-      <span className="desc" onClick={() => setIsOpen(true)}>
-        {" "}
-        {props.description}{" "}
-      </span>
-      <input type="checkbox" checked={props.completed} onChange={onChange} />
-      
-    </li>
-
-{isOpen && (
-	<div>
-	  <textarea
-		type="text"
-		style={{ display: isOpen ? "block" : "none" }}
-		placeholder="Additional content" name={`extra-${props.id}`}
-	  >
-		{props.extradescription}
-	  </textarea>
-	  <button type="button" >Submit</button>
-	</div>
-  )}
-  </>
+    <>
+      <li className="listtask">
+        <button type="button" onClick={handleDelete}>
+          X
+        </button>
+        <div className="task-content" onClick={toggleAccordion}>
+          <span className="desc">{props.task.description}</span>
+        </div>
+        <input
+          type="checkbox"
+          checked={props.task.completed}
+          onChange={handleCheckboxChange}
+        />
+      </li>
+      {isOpen && (
+        <div className="task-text">
+          <textarea
+            type="text"
+            placeholder="Additional content"
+            name={`extra-${props.id}`}
+            value={props.task.extraText}
+            onChange={handleTextChange}
+          />
+          <button onClick={saveExtraText}>Submit</button>
+        </div>
+      )}
+    </>
   );
 }
 
 function List(props) {
   const [newTask, setNewTask] = useState("");
 
-  function onChange(event) {
-    setNewTask(event.target.value);
-  }
+  useEffect(() => {
+    fetch("http://localhost/api/tasks")
+      .then((response) => response.json())
+      .then((data) => {
+        props.setTasks(data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }, []);
 
-  function onClick() {
+  const handleNewTaskChange = (event) => {
+    setNewTask(event.target.value);
+  };
+
+  const addNewTask = () => {
     fetch("http://localhost/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -108,29 +134,31 @@ function List(props) {
     })
       .then((response) => response.json())
       .then((data) => {
-        props.setTasks((tasks) => [...tasks, data]);
+        props.setTasks((prevTasks) => [...prevTasks, data]);
+        setNewTask("");
       })
       .catch((error) => {
         console.error("Error:", error);
       });
-    setNewTask(""); // Clear the input field
-  }
+  };
 
   return (
     <div>
       <h1>{props.heading}</h1>
-      <input type="text" placeholder="Add a new task" onChange={onChange} />
-      <button type="button" onClick={onClick}>
-        Add
-      </button>
+      <div className="input-row">
+        <input
+          type="text"
+          placeholder="Add a new task"
+          value={newTask}
+          onChange={handleNewTaskChange}
+        />
+        <button type="button" onClick={addNewTask}>
+          Add
+        </button>
+      </div>
       <ul>
         {props.tasks.map((task) => (
-          <Task
-            setTasks={props.setTasks}
-            id={task.id}
-            description={task.description}
-            completed={task.completed}
-          />
+          <Task key={task.id} setTasks={props.setTasks} task={task} />
         ))}
       </ul>
     </div>

@@ -32,7 +32,17 @@ exports.findAll = (req, res) => {
 };
 
 // Find a single Task with an id
-exports.findOne = (req, res) => {};
+exports.findOne = (req, res) => {
+    Task.findOne({ where: { id: req.params.id} })
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: err.message || "Some error occurred"
+      });
+    });
+};
 
 // Update a Task by the id in the request
 exports.update = (req, res) => {
